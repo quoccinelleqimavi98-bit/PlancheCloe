@@ -11,6 +11,10 @@ Le contenu (textes, prix, images, positions) est enregistré côté serveur par 
 petite **API PHP** (voir `backend/README.md`), configurée dans
 `src/app/config.ts` (`API_BASE = https://cloechaudronbeauty.com/backend/api/`).
 
+> ⚠️ Contrairement aux deux autres dépôts (IntraCCB2 et CloeBeauty, hébergés sur
+> OVH par FTP), **le front de PlancheCloe est publié sur GitHub Pages**. Seul le
+> **backend PHP** de la planche vit sur OVH (dossier `backend/`).
+
 ## Développement local
 
 ```bash
@@ -26,47 +30,37 @@ npm run build:prod # build de prod avec base-href relatif (comme en déploiement
 
 1. Faire la modification (ou demander à Claude de la faire).
 2. La faire arriver sur la branche `main`.
-3. **C'est tout.** Le workflow « Déploiement FTP (OVH) » build la planche et
-   l'envoie en FTP sur OVH tout seul.
+3. **C'est tout.** Le workflow « Déploiement GitHub Pages » build la planche et
+   la publie sur GitHub Pages tout seul.
 
-À la main : onglet **Actions** → « Déploiement FTP (OVH) » → **Run workflow**.
+À la main : onglet **Actions** → « Déploiement GitHub Pages » → **Run workflow**.
 
 > Auparavant le déploiement se faisait par un script `deploy-ghpages`
-> **Windows-uniquement** (PowerShell) vers GitHub Pages. Il a été retiré au
-> profit du workflow FTP ci-dessus, qui marche partout et publie sur
-> l'hébergement OVH (le vrai site), pas sur GitHub Pages.
+> **Windows-uniquement** (PowerShell) qui buildait dans `docs/` et poussait à la
+> main. Il a été remplacé par le workflow ci-dessus, qui marche partout et ne
+> committe plus les fichiers buildés dans le dépôt.
 
-### ⚙️ Réglages à faire UNE SEULE FOIS sur GitHub
+### ⚙️ Réglage à faire UNE SEULE FOIS sur GitHub
 
-Dépôt **PlancheCloe** → **Settings** → **Secrets and variables** → **Actions** :
+Dépôt **PlancheCloe** → **Settings** → **Pages** → *Build and deployment* →
+**Source = « GitHub Actions »**.
 
-1. **Secret** `FTP_PASSWORD` = mot de passe FTP OVH. *(obligatoire)*
-2. **Variable** `FTP_REMOTE_PATH` = le dossier cible sur le serveur.
-   - ⚠️ **À confirmer** : la valeur par défaut est `/public_html/planche/`. Si la
-     planche doit être servie ailleurs (autre sous-dossier, sous-domaine…),
-     mettre le bon chemin ici. Se tromper de chemin ne fait que créer un dossier
-     inutile — ça n'écrase rien d'autre (le backend est protégé).
-
-*(Hôte `ftp.chcl8760.odns.fr` et utilisateur `chcl8760` par défaut. Pour les
-changer : variables `FTP_HOST` / `FTP_USER`.)*
-
-> ⚠️ **Le FTP ne marche PAS depuis Claude sur le web** (port 21 bloqué dans le
-> cloud). Depuis Claude, on déploie via GitHub uniquement (push sur `main` ou
-> « Run workflow »).
+C'est tout : **aucun secret à créer** (GitHub s'authentifie tout seul pour Pages).
 
 ## 🌿 Le backend PHP (dossier `backend/`)
 
 - Le fichier de config `backend/api/config.php` (base de données, mot de passe
   admin, clé secrète) est **ignoré par git** — modèle : `config.sample.php`.
   Voir `backend/README.md` pour l'installation serveur.
-- Toute modification d'un `.php` du backend doit être remontée **par FTP manuel** :
-  le workflow ne déploie que le front et ne touche pas au backend.
-- Si le site est en HTTPS, l'API doit l'être aussi (sinon « mixed content ») :
-  adapter `API_BASE` dans `src/app/config.ts`.
+- Le backend vit sur OVH (`cloechaudronbeauty.com/backend/api/`). Toute
+  modification d'un `.php` doit être remontée **par FTP manuel** : le workflow
+  Pages ne déploie que le front.
+- Le site Pages est en HTTPS → l'API doit l'être aussi (sinon « mixed content ») :
+  `API_BASE` dans `src/app/config.ts` doit rester en `https://`.
 
 ## Pour Cloé (en clair)
 
 Pour modifier la planche (prix, textes, photos) : utilise l'**espace admin** de
 l'appli. Pour changer l'appli elle-même : **demande à Claude** ; une fois poussé
-sur `main`, ça se met en ligne tout seul. Réglage unique : ajouter le secret
-`FTP_PASSWORD` (et vérifier `FTP_REMOTE_PATH`) sur GitHub.
+sur `main`, ça se met en ligne tout seul sur GitHub Pages. Réglage unique :
+mettre la *Source* de Pages sur « GitHub Actions » (voir ci-dessus).
